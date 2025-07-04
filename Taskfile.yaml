@@ -1,0 +1,32 @@
+version: "3"
+
+tasks:
+  server-component-model:
+    desc: Run the Component Model server implementation
+    cmds:
+      - go run ./server-component-model
+
+  server-dependency-injection:
+    desc: Run the Dependency Injection server implementation
+    cmds:
+      - go run ./server-dependency-injection
+
+  server-ioc:
+    desc: Run the IoC server implementation
+    cmds:
+      - go run ./server-ioc
+
+  server-procedural:
+    desc: Run the Procedural server implementation
+    cmds:
+      - go run ./server-procedural
+
+  migrate:
+    desc: Apply database migrations
+    cmds:
+      - go run ./manage migrate
+
+  clean:
+    desc: Apply database migrations
+    cmds:
+      - go run ./manage clean
