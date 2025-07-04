@@ -84,7 +84,7 @@ func (r *Repository) GetAllTasks() ([]Task, error) {
 		return nil, fmt.Errorf("failed to connect to postgres: %w", err)
 	}
 
-	query := `SELECT id, title, description, status FROM tasks`
+	query := `SELECT id, title, description, status FROM tasks ORDER BY id`
 	rows, err := conn.Query(context.Background(), query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tasks: %w", err)

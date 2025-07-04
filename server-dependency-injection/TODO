@@ -1,0 +1,19 @@
+- Demo:
+    - new main.go file
+    - create container
+    - register dependencies
+    - resolve
+    - add another dependency
+    - register with keys
+    - lifecycle control (Start, Shutdown)
+
+- Applying on existing project:
+    - create container
+    - register dependencies
+    - add container middleware
+    - add ResolveFromGin functoin
+    - update handler functions
+    - create RegisterServices function
+    - create tests
+    - create RegisterTestServices function with default date mock
+    - fix tests

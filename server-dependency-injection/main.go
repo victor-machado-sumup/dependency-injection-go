@@ -9,8 +9,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/sumup/dependency-injection-go/server-ioc/handlers"
-	"github.com/sumup/dependency-injection-go/server-ioc/repository"
+	"github.com/sumup/dependency-injection-go/server-dependency-injection/handlers"
+	"github.com/sumup/dependency-injection-go/server-dependency-injection/repository"
 )
 
 func main() {

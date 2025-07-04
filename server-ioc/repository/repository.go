@@ -65,7 +65,7 @@ func (r *Repository) UpdateTaskStatus(id int, status TaskStatus) (Task, error) {
 }
 
 func (r *Repository) GetAllTasks() ([]Task, error) {
-	query := `SELECT id, title, description, status FROM tasks`
+	query := `SELECT id, title, description, status FROM tasks ORDER BY id`
 	rows, err := r.pool.Query(context.Background(), query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tasks: %w", err)

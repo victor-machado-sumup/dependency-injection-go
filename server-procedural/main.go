@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -67,6 +68,7 @@ func handleHealth(w http.ResponseWriter) {
 
 // Task represents a task in our system
 type Task struct {
+	ID          int        `json:"id"`
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
 	Status      TaskStatus `json:"status"`
@@ -129,6 +131,7 @@ func handleCreateTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"task": Task{
+			ID:          id,
 			Title:       task.Title,
 			Description: task.Description,
 			Status:      TaskStatusPending,
@@ -144,7 +147,12 @@ type UpdateTaskStatus struct {
 // handleUpdateTaskStatus handles POST requests to update the status of a task
 func handleUpdateTaskStatus(w http.ResponseWriter, r *http.Request) {
 	// Extract task ID from URL
-	taskID := r.URL.Path[7:] // Remove "/tasks/" prefix
+	taskID, err := strconv.Atoi(r.URL.Path[7:]) // Remove "/tasks/" prefix
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Invalid taskID: %v", err)
+		return
+	}
 
 	// Parse the request body
 	var updateReq UpdateTaskStatus
@@ -193,15 +201,15 @@ func handleUpdateTaskStatus(w http.ResponseWriter, r *http.Request) {
 
 	if result.RowsAffected() == 0 {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, "Task with ID %s not found", taskID)
+		fmt.Fprintf(w, "Task with ID %v not found", taskID)
 		return
 	}
 
 	// Fetch the updated task from the database
 	var updatedTask Task
 	err = conn.QueryRow(context.Background(),
-		"SELECT title, description, status FROM tasks WHERE id = $1",
-		taskID).Scan(&updatedTask.Title, &updatedTask.Description, &updatedTask.Status)
+		"SELECT id, title, description, status FROM tasks WHERE id = $1",
+		taskID).Scan(&updatedTask.ID, &updatedTask.Title, &updatedTask.Description, &updatedTask.Status)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -238,7 +246,7 @@ func handleGetTasks(w http.ResponseWriter) {
 
 	// Query all tasks from the database
 	rows, err := conn.Query(context.Background(),
-		"SELECT title, description, status FROM tasks ORDER BY id")
+		"SELECT id, title, description, status FROM tasks ORDER BY id")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Error fetching tasks: %v", err)
@@ -252,7 +260,7 @@ func handleGetTasks(w http.ResponseWriter) {
 	// Iterate through the rows
 	for rows.Next() {
 		var task Task
-		err := rows.Scan(&task.Title, &task.Description, &task.Status)
+		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.Status)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "Error scanning task row: %v", err)

@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/sumup/dependency-injection-go/server-ioc/repository"
+	"github.com/sumup/dependency-injection-go/server-dependency-injection/repository"
 )
 
 type GetTasksHandler struct {

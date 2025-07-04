@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -28,9 +29,9 @@ func NewRepository(pool *pgxpool.Pool) IRepository {
 
 func (r *Repository) GetTaskById(id int) (Task, error) {
 
-	query := `SELECT id, title, description, status FROM tasks WHERE id = $1`
+	query := `SELECT id, title, description, status, created_at, updated_at FROM tasks WHERE id = $1`
 	var task Task
-	err := r.pool.QueryRow(context.Background(), query, id).Scan(&task.ID, &task.Title, &task.Description, &task.Status)
+	err := r.pool.QueryRow(context.Background(), query, id).Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.CreatedAt, &task.UpdatedAt)
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to get task: %w", err)
 	}
@@ -40,9 +41,9 @@ func (r *Repository) GetTaskById(id int) (Task, error) {
 func (r *Repository) CreateTask(task Task) (Task, error) {
 
 	// Insert the task into the database
-	query := `INSERT INTO tasks (title, description, status) VALUES ($1, $2, $3) RETURNING id`
+	query := `INSERT INTO tasks (title, description, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	var id int
-	err := r.pool.QueryRow(context.Background(), query, task.Title, task.Description, task.Status).Scan(&id)
+	err := r.pool.QueryRow(context.Background(), query, task.Title, task.Description, task.Status, time.Now().UTC(), time.Now().UTC()).Scan(&id)
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to create task: %w", err)
 	}
@@ -53,9 +54,9 @@ func (r *Repository) CreateTask(task Task) (Task, error) {
 
 func (r *Repository) UpdateTaskStatus(id int, status TaskStatus) (Task, error) {
 
-	query := `UPDATE tasks SET status = $1 WHERE id = $2 RETURNING id`
+	query := `UPDATE tasks SET status = $1, updated_at = $2 WHERE id = $3 RETURNING id`
 	var taskId int
-	err := r.pool.QueryRow(context.Background(), query, status, id).Scan(&taskId)
+	err := r.pool.QueryRow(context.Background(), query, status, time.Now().UTC(), id).Scan(&taskId)
 	if err != nil {
 		return Task{}, fmt.Errorf("failed to update task status: %w", err)
 	}
@@ -65,7 +66,7 @@ func (r *Repository) UpdateTaskStatus(id int, status TaskStatus) (Task, error) {
 }
 
 func (r *Repository) GetAllTasks() ([]Task, error) {
-	query := `SELECT id, title, description, status FROM tasks`
+	query := `SELECT id, title, description, status, created_at, updated_at FROM tasks ORDER BY id`
 	rows, err := r.pool.Query(context.Background(), query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tasks: %w", err)
@@ -75,7 +76,7 @@ func (r *Repository) GetAllTasks() ([]Task, error) {
 	var tasks []Task
 	for rows.Next() {
 		var task Task
-		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.Status)
+		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.CreatedAt, &task.UpdatedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan task: %w", err)
 		}
